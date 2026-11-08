@@ -48,7 +48,16 @@ python main.py
 quiz-game/
 ├── .gitignore
 ├── README.md
-└── main.py
+├── main.py
+└── test_quiz.py
+```
+
+## 테스트 방법
+
+Quiz 클래스의 문제 출력과 정답 판정을 확인합니다.
+
+```bash
+python test_quiz.py
 ```
 
 ## 데이터 파일 설명

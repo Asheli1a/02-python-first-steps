@@ -1,3 +1,22 @@
+class Quiz:
+    """문제 하나의 데이터와 동작을 관리합니다."""
+
+    def __init__(self, question, choices, answer):
+        self.question = question
+        self.choices = choices
+        self.answer = answer
+
+    def display(self):
+        """문제와 선택지를 출력합니다."""
+        print(self.question)
+
+        for number, choice in enumerate(self.choices, start=1):
+            print(f"{number}. {choice}")
+
+    def check_answer(self, user_answer):
+        """입력한 번호가 정답이면 True, 아니면 False를 반환합니다."""
+        return user_answer == self.answer
+
 def input_int(prompt, minimum, maximum):
     """허용 범위 안의 정수를 입력받을 때까지 반복합니다."""
     while True:
