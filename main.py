@@ -127,6 +127,21 @@ def add_quiz(quizzes):
 
     print(f"퀴즈가 추가되었습니다! 현재 총 {len(quizzes)}개입니다.")
 
+def show_quiz_list(quizzes):
+    """등록된 퀴즈의 문제를 번호와 함께 출력합니다."""
+    if not quizzes:
+        print("\n등록된 퀴즈가 없습니다.")
+        return
+
+    print("\n" + "=" * 40)
+    print(f"등록된 퀴즈 목록 (총 {len(quizzes)}개)")
+    print("-" * 40)
+
+    for number, quiz in enumerate(quizzes, start=1):
+        print(f"[{number}] {quiz.question}")
+
+    print("=" * 40)
+
 def play_quizzes(quizzes):
     """퀴즈를 차례로 출제하고 최종 정답 수를 반환합니다."""
     if not quizzes:
@@ -188,7 +203,7 @@ def run_menu():
         elif choice == 2:
             add_quiz(quizzes)
         elif choice == 3:
-            print("퀴즈 목록 기능은 준비 중입니다.")
+            show_quiz_list(quizzes)
         elif choice == 4:
             print("점수 확인 기능은 준비 중입니다.")
         else:
