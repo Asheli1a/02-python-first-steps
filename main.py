@@ -17,6 +17,61 @@ class Quiz:
         """입력한 번호가 정답이면 True, 아니면 False를 반환합니다."""
         return user_answer == self.answer
 
+def create_default_quizzes():
+    """기본 퀴즈 5개를 새로운 객체 목록으로 만들어 반환합니다."""
+    return [
+        Quiz(
+            question="CPU의 주된 역할은 무엇인가요?",
+            choices=[
+                "화면에 영상을 표시한다",
+                "명령어를 해석하고 연산을 수행한다",
+                "종이에 문서를 출력한다",
+                "컴퓨터에 전원을 공급한다",
+            ],
+            answer=2,
+        ),
+        Quiz(
+            question="일반적인 PC에서 전원을 끄면 저장 내용이 사라지는 메모리는?",
+            choices=[
+                "SSD",
+                "HDD",
+                "RAM",
+                "USB 플래시 드라이브",
+            ],
+            answer=3,
+        ),
+        Quiz(
+            question="다음 중 운영체제에 해당하는 것은 무엇인가요?",
+            choices=[
+                "Windows",
+                "HDMI",
+                "DDR5",
+                "PCIe",
+            ],
+            answer=1,
+        ),
+        Quiz(
+            question="다음 중 Python에서 문자열을 나타내는 자료형은?",
+            choices=[
+                "int",
+                "bool",
+                "list",
+                "str",
+            ],
+            answer=4,
+        ),
+        Quiz(
+            question="Git에서 준비된 변경 사항을 로컬 이력에 기록하는 명령은?",
+            choices=[
+                "git status",
+                "git commit",
+                "git diff",
+                "git log",
+            ],
+            answer=2,
+        ),
+    ]
+
 def input_int(prompt, minimum, maximum):
     """허용 범위 안의 정수를 입력받을 때까지 반복합니다."""
     while True:
