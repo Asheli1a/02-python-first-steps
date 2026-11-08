@@ -92,6 +92,39 @@ def input_int(prompt, minimum, maximum):
 
         print(f"{minimum}~{maximum} 사이의 숫자를 입력하세요.")
 
+def play_quizzes(quizzes):
+    """퀴즈를 차례로 출제하고 최종 정답 수를 반환합니다."""
+    if not quizzes:
+        print("등록된 퀴즈가 없습니다.")
+        return None
+
+    correct_count = 0
+    total = len(quizzes)
+
+    print(f"\n퀴즈를 시작합니다! (총 {total}문제)")
+
+    for number, quiz in enumerate(quizzes, start=1):
+        print("\n" + "-" * 40)
+        print(f"[문제 {number}/{total}]")
+        quiz.display()
+
+        user_answer = input_int("정답 입력 (1~4): ", 1, 4)
+
+        if quiz.check_answer(user_answer):
+            print("정답입니다!")
+            correct_count += 1
+        else:
+            correct_choice = quiz.choices[quiz.answer - 1]
+            print("오답입니다.")
+            print(f"정답: {quiz.answer}. {correct_choice}")
+
+    score = correct_count / total * 100
+
+    print("\n" + "=" * 40)
+    print(f"결과: {total}문제 중 {correct_count}문제 정답! ({score:.0f}점)")
+    print("=" * 40)
+
+    return correct_count
 
 def show_menu():
     """메뉴를 화면에 출력합니다."""
@@ -109,12 +142,14 @@ def show_menu():
 
 def run_menu():
     """선택한 메뉴에 따라 동작하고, 종료 전까지 반복합니다."""
+    quizzes = create_default_quizzes()
+
     while True:
         show_menu()
         choice = input_int("선택: ", 1, 5)
 
         if choice == 1:
-            print("퀴즈 풀기 기능은 준비 중입니다.")
+            play_quizzes(quizzes)
         elif choice == 2:
             print("퀴즈 추가 기능은 준비 중입니다.")
         elif choice == 3:
