@@ -14,9 +14,113 @@ Quiz와 QuizGame 클래스로 역할을 분리했으며, 파일 손상과 읽기
 
 ## Git 복제 및 동기화 실습
 
-별도 로컬 폴더에 저장소를 clone했습니다.
-복제본에서 README를 수정하여 commit과 push를 수행합니다.
-원래 작업 폴더에서는 pull로 해당 변경을 가져와 확인합니다.
+별도 로컬 폴더에 저장소를 복제한 뒤 README를 수정하여 commit과 push를 수행했습니다.
+이후 원래 작업 폴더에서 pull로 변경을 가져와 반영 여부를 확인했습니다.
+
+아래는 실제 터미널 실행 기록의 핵심 부분입니다.
+객체 전송 진행률 등 일부 출력은 생략했습니다.
+
+### 1. 별도 폴더에 저장소 복제
+
+<details>
+<summary>clone 실행 기록</summary>
+
+```text
+PS C:\Users\Austarthia> git clone [https://github.com/Asheli1a/02-python-first-steps.git](https://github.com/Asheli1a/02-python-first-steps.git) quiz-game-clone
+Cloning into 'quiz-game-clone'...
+```
+
+객체 수신과 델타 처리가 완료된 뒤 복제 폴더로 이동했습니다.
+
+```text
+PS C:\Users\Austarthia> cd .\quiz-game-clone
+PS C:\Users\Austarthia\quiz-game-clone> Get-Location
+
+Path
+----
+C:\Users\Austarthia\quiz-game-clone
+
+PS C:\Users\Austarthia\quiz-game-clone> git log --oneline -3
+5ba620b (HEAD -> main, origin/main, origin/HEAD) Docs: 저장 파일과 저장 테스트를 README 파일 구조에 반영
+f6c813a Feat: JSON 저장과 복원 및 손상 파일 백업과 오류 처리 구현
+f34c485 Refactor: QuizGame으로 게임 상태와 메뉴 진행 관리
+```
+
+</details>
+
+### 2. 복제본에서 README 수정 후 commit·push
+
+<details>
+<summary>복제본의 변경 기록</summary>
+
+복제본에서 Git 작성자 설정을 완료하고 README를 수정했습니다.
+
+```text
+PS C:\Users\Austarthia\quiz-game-clone> git add README.md
+PS C:\Users\Austarthia\quiz-game-clone> git commit -m "Docs: 복제 저장소에서 Git 동기화 실습 절차 추가"
+[main 3dc8f67] Docs: 복제 저장소에서 Git 동기화 실습 절차 추가
+ 1 file changed, 8 insertions(+)
+```
+
+이어서 원격 main 브랜치에 업로드했습니다.
+다음은 push 명령과 성공 결과입니다.
+
+```text
+PS C:\Users\Austarthia\quiz-game-clone> git push origin main
+To [https://github.com/Asheli1a/02-python-first-steps.git](https://github.com/Asheli1a/02-python-first-steps.git)
+   5ba620b..3dc8f67  main -> main
+```
+
+</details>
+
+### 3. 원래 작업 폴더에서 pull
+
+<details>
+<summary>pull 실행 기록과 반영 확인</summary>
+
+원래 작업 폴더로 돌아와 원격 변경을 가져왔습니다.
+다음은 pull 명령과 주요 결과입니다.
+
+```text
+PS C:\Users\Austarthia\quiz-game-clone> cd C:\Users\Austarthia\quiz-game
+PS C:\Users\Austarthia\quiz-game> git pull --ff-only origin main
+```
+
+```text
+Updating 5ba620b..3dc8f67
+Fast-forward
+ README.md | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+```
+
+원래 폴더의 이력에도 복제본에서 만든 커밋이 반영됐습니다.
+당시 git log 출력의 첫 줄은 다음과 같습니다.
+
+```text
+* 3dc8f67 (HEAD -> main, origin/main) Docs: 복제 저장소에서 Git 동기화 실습 절차 추가
+```
+
+최종 작업 상태도 확인했습니다.
+
+```text
+PS C:\Users\Austarthia\quiz-game> git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+
+</details>
+
+### 실습 결과
+
+- clone으로 원격 저장소를 별도 폴더에 복제했습니다.
+- 복제본에서 README를 수정하고 커밋 3dc8f67을 생성했습니다.
+- push로 해당 커밋을 원격 main에 반영했습니다.
+- 원래 폴더에서 pull하여 5ba620b에서 3dc8f67로 갱신했습니다.
+- README 8줄의 반영과 원격 브랜치 동기화를 확인했습니다.
+
+위 기록은 실습 당시의 상태이며, 이후 기능·문서 정리 커밋이 추가되었습니다.
 
 
 ## 퀴즈 주제와 선정 이유
