@@ -180,6 +180,14 @@ python test_storage.py
 - 강제 프로세스 종료나 정전 시 저장 완료를 보장하지 않습니다.
 
 
+## 개발 환경 및 Git 이력
+
+### 개발 환경
+![개발 환경](docs/screenshots/environment.png)
+
+### 커밋과 브랜치 병합 이력
+![Git 이력](docs/screenshots/git_log.png)
+
 ## 실행 화면
 
 ### 메뉴
@@ -196,6 +204,8 @@ python test_storage.py
 
 ### 최고 점수
 ![최고 점수](docs/screenshots/score.png)
+이번 게임은 8문제 중 4개 정답으로 50점이며,
+기존 최고 기록인 6문제 중 4개 정답·67점은 유지됩니다.
 
 ### 재실행 후 데이터 유지
 ![데이터 유지](docs/screenshots/persistence.png)
