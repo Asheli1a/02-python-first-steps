@@ -226,43 +226,70 @@ def show_menu():
     print("=" * 40)
 
 
-def run_menu():
-    """선택한 메뉴에 따라 동작하고, 종료 전까지 반복합니다."""
-    quizzes = create_default_quizzes()
-    best_score = None
+class QuizGame:
+    """게임 상태와 메뉴 진행을 관리합니다."""
 
-    while True:
+    def __init__(self):
+        self.quizzes = create_default_quizzes()
+        self.best_score = None
+
+    def show_menu(self):
+        """메뉴를 출력합니다."""
         show_menu()
-        choice = input_int("선택: ", 1, 5)
 
-        if choice == 1:
-            correct_count = play_quizzes(quizzes)
+    def play(self):
+        """게임을 진행하고, 완료한 결과로 최고 기록을 갱신합니다."""
+        correct_count = play_quizzes(self.quizzes)
 
-            if correct_count is not None:
-                best_score = update_best_score(
-                    best_score,
-                    correct_count,
-                    len(quizzes),
-                )
+        if correct_count is not None:
+            self.best_score = update_best_score(
+                self.best_score,
+                correct_count,
+                len(self.quizzes),
+            )
 
-        elif choice == 2:
-            add_quiz(quizzes)
+        return correct_count
 
-        elif choice == 3:
-            show_quiz_list(quizzes)
+    def add_quiz(self):
+        """현재 게임의 퀴즈 목록에 새 문제를 등록합니다."""
+        add_quiz(self.quizzes)
 
-        elif choice == 4:
-            show_best_score(best_score)
+    def show_quiz_list(self):
+        """현재 게임의 퀴즈 목록을 출력합니다."""
+        show_quiz_list(self.quizzes)
 
-        else:
-            print("퀴즈 게임을 종료합니다.")
-            break
+    def show_best_score(self):
+        """현재 게임의 최고 기록을 출력합니다."""
+        show_best_score(self.best_score)
+
+    def run(self):
+        """종료를 선택할 때까지 메뉴를 반복합니다."""
+        while True:
+            self.show_menu()
+            choice = input_int("선택: ", 1, 5)
+
+            if choice == 1:
+                self.play()
+
+            elif choice == 2:
+                self.add_quiz()
+
+            elif choice == 3:
+                self.show_quiz_list()
+
+            elif choice == 4:
+                self.show_best_score()
+
+            else:
+                print("퀴즈 게임을 종료합니다.")
+                break
 
 
 def main():
-    """프로그램을 시작하고, 입력 중단 시 안내 후 종료합니다."""
+    """게임 객체를 만들고, 입력 중단 시 안내 후 종료합니다."""
     try:
-        run_menu()
+        game = QuizGame()
+        game.run()
     except KeyboardInterrupt:
         print("\n사용자가 실행을 중단했습니다. 종료합니다.")
     except EOFError:
