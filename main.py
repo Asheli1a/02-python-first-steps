@@ -176,6 +176,42 @@ def play_quizzes(quizzes):
 
     return correct_count
 
+def update_best_score(best_score, correct_count, total):
+    """더 높은 정답률이면 새 기록을 반환하고, 아니면 기존 기록을 유지합니다."""
+    if best_score is None:
+        is_new_record = True
+    else:
+        # 나눗셈 대신 교차 곱으로 정답률을 비교합니다.
+        is_new_record = (
+            correct_count * best_score["total"]
+            > best_score["correct_count"] * total
+        )
+
+    if is_new_record:
+        print("새로운 최고 기록입니다!")
+
+        return {
+            "correct_count": correct_count,
+            "total": total,
+        }
+
+    return best_score
+
+def show_best_score(best_score):
+    """최고 기록을 출력합니다."""
+    if best_score is None:
+        print("\n아직 완료한 게임이 없습니다.")
+        return
+
+    correct_count = best_score["correct_count"]
+    total = best_score["total"]
+    score = correct_count / total * 100
+
+    print("\n" + "=" * 40)
+    print(f"최고 점수: {score:.0f}점")
+    print(f"당시 {total}문제 중 {correct_count}문제 정답")
+    print("=" * 40)
+
 def show_menu():
     """메뉴를 화면에 출력합니다."""
     print()
@@ -193,19 +229,31 @@ def show_menu():
 def run_menu():
     """선택한 메뉴에 따라 동작하고, 종료 전까지 반복합니다."""
     quizzes = create_default_quizzes()
+    best_score = None
 
     while True:
         show_menu()
         choice = input_int("선택: ", 1, 5)
 
         if choice == 1:
-            play_quizzes(quizzes)
+            correct_count = play_quizzes(quizzes)
+
+            if correct_count is not None:
+                best_score = update_best_score(
+                    best_score,
+                    correct_count,
+                    len(quizzes),
+                )
+
         elif choice == 2:
             add_quiz(quizzes)
+
         elif choice == 3:
             show_quiz_list(quizzes)
+
         elif choice == 4:
-            print("점수 확인 기능은 준비 중입니다.")
+            show_best_score(best_score)
+
         else:
             print("퀴즈 게임을 종료합니다.")
             break
