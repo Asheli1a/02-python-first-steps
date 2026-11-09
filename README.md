@@ -53,12 +53,14 @@ quiz-game/
 ├── .gitignore
 ├── README.md
 ├── main.py
+├── state.json
 ├── test_quiz.py
 ├── test_play.py
 ├── test_add.py
 ├── test_list.py
 ├── test_score.py
-└── test_game.py
+├── test_game.py
+└── test_storage.py
 ```
 
 
