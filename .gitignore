@@ -12,3 +12,7 @@ venv/
 # 운영체제 임시 파일
 .DS_Store
 Thumbs.db
+
+# 저장 중 임시 파일과 손상 데이터 백업
+state.json.tmp
+state.json.corrupt-*.bak

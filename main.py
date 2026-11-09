@@ -1,3 +1,9 @@
+import json
+import shutil
+from pathlib import Path
+from uuid import uuid4
+
+
 class Quiz:
     """문제 하나의 데이터와 동작을 관리합니다."""
 
@@ -72,6 +78,72 @@ def create_default_quizzes():
         ),
     ]
 
+def parse_state(data):
+    """저장 데이터의 구조를 검사하고 퀴즈 객체와 최고 기록을 반환합니다."""
+    if not isinstance(data, dict):
+        raise ValueError("최상위 데이터는 객체여야 합니다.")
+
+    if "quizzes" not in data or "best_score" not in data:
+        raise ValueError("quizzes 또는 best_score가 없습니다.")
+
+    if not isinstance(data["quizzes"], list):
+        raise ValueError("quizzes는 목록이어야 합니다.")
+
+    quizzes = []
+
+    for number, item in enumerate(data["quizzes"], start=1):
+        if not isinstance(item, dict):
+            raise ValueError(f"{number}번 퀴즈는 객체여야 합니다.")
+
+        question = item.get("question")
+        choices = item.get("choices")
+        answer = item.get("answer")
+
+        if not isinstance(question, str) or not question.strip():
+            raise ValueError(f"{number}번 문제가 비어 있거나 문자열이 아닙니다.")
+
+        if not isinstance(choices, list) or len(choices) != 4:
+            raise ValueError(f"{number}번 선택지는 4개여야 합니다.")
+
+        if any(
+            not isinstance(choice, str) or not choice.strip()
+            for choice in choices
+        ):
+            raise ValueError(f"{number}번 선택지에 잘못된 값이 있습니다.")
+
+        if type(answer) is not int or not 1 <= answer <= 4:
+            raise ValueError(f"{number}번 정답은 1~4의 정수여야 합니다.")
+
+        quizzes.append(
+            Quiz(
+                question.strip(),
+                [choice.strip() for choice in choices],
+                answer,
+            )
+        )
+
+    best_score = data["best_score"]
+
+    if best_score is not None:
+        if not isinstance(best_score, dict):
+            raise ValueError("best_score는 객체 또는 null이어야 합니다.")
+
+        correct_count = best_score.get("correct_count")
+        total = best_score.get("total")
+
+        if type(correct_count) is not int or type(total) is not int:
+            raise ValueError("최고 기록의 정답 수와 문제 수는 정수여야 합니다.")
+
+        if total <= 0 or not 0 <= correct_count <= total:
+            raise ValueError("최고 기록의 정답 수 또는 문제 수가 잘못됐습니다.")
+
+        best_score = {
+            "correct_count": correct_count,
+            "total": total,
+        }
+
+    return quizzes, best_score
+
 def input_int(prompt, minimum, maximum):
     """허용 범위 안의 정수를 입력받을 때까지 반복합니다."""
     while True:
@@ -105,7 +177,6 @@ def input_text(prompt):
 def add_quiz(quizzes):
     """모든 입력을 완료하면 새 퀴즈를 목록에 추가합니다."""
     print("\n새로운 퀴즈를 추가합니다.")
-    print("현재는 실행 중에만 유지되며, 파일 저장은 추후 구현합니다.")
 
     question = input_text("문제를 입력하세요: ")
 
@@ -229,16 +300,107 @@ def show_menu():
 class QuizGame:
     """게임 상태와 메뉴 진행을 관리합니다."""
 
-    def __init__(self):
+    def __init__(self, state_path=None):
         self.quizzes = create_default_quizzes()
         self.best_score = None
+        self.state_path = (
+            Path(state_path) if state_path is not None else None
+        )
+        self.storage_writable = True
+
+        if self.state_path is not None:
+            self.load_state()
+
+    def load_state(self):
+        """파일을 읽고, 검증을 통과한 데이터만 적용합니다."""
+        if self.state_path is None:
+            return
+
+        try:
+            with self.state_path.open("r", encoding="utf-8") as file:
+                data = json.load(file)
+
+            quizzes, best_score = parse_state(data)
+
+        except FileNotFoundError:
+            print("저장 파일이 없어 기본 퀴즈로 시작합니다.")
+
+        except (ValueError, UnicodeError) as error:
+            print(f"저장 파일이 손상되었습니다: {error}")
+            self.backup_damaged_state()
+            print("기본 퀴즈와 초기 기록으로 시작합니다.")
+
+        except OSError as error:
+            self.storage_writable = False
+            print(f"저장 파일을 읽을 수 없습니다: {error}")
+            print("원본 보호를 위해 이번 실행에서는 파일 저장을 중지합니다.")
+
+        else:
+            self.quizzes = quizzes
+            self.best_score = best_score
+            print(f"저장된 데이터를 불러왔습니다. 퀴즈 {len(quizzes)}개")
+
+    def backup_damaged_state(self):
+        """손상된 원본을 복사하고, 백업 실패 시 덮어쓰기를 막습니다."""
+        backup_path = self.state_path.with_name(
+            f"{self.state_path.name}.corrupt-{uuid4().hex}.bak"
+        )
+
+        try:
+            shutil.copyfile(self.state_path, backup_path)
+            print(f"손상 파일 백업: {backup_path.name}")
+        except OSError as error:
+            self.storage_writable = False
+            print(f"손상 파일을 백업할 수 없습니다: {error}")
+            print("원본 보호를 위해 이번 실행에서는 파일 저장을 중지합니다.")
+
+    def save_state(self):
+        """임시 파일에 저장한 뒤 기존 파일을 교체합니다."""
+        if self.state_path is None:
+            return False
+
+        if not self.storage_writable:
+            print("원본 보호를 위해 파일 저장을 건너뜁니다.")
+            return False
+
+        data = {
+            "quizzes": [
+                {
+                    "question": quiz.question,
+                    "choices": quiz.choices,
+                    "answer": quiz.answer,
+                }
+                for quiz in self.quizzes
+            ],
+            "best_score": self.best_score,
+        }
+
+        temporary_path = self.state_path.with_name(
+            self.state_path.name + ".tmp"
+        )
+
+        try:
+            # 잘못된 메모리 데이터를 파일에 기록하지 않도록 검사합니다.
+            parse_state(data)
+
+            with temporary_path.open("w", encoding="utf-8") as file:
+                json.dump(data, file, ensure_ascii=False, indent=4)
+                file.write("\n")
+
+            temporary_path.replace(self.state_path)
+
+        except (OSError, ValueError, TypeError, UnicodeError) as error:
+            print(f"데이터 저장에 실패했습니다: {error}")
+            return False
+
+        return True
 
     def show_menu(self):
         """메뉴를 출력합니다."""
         show_menu()
 
     def play(self):
-        """게임을 진행하고, 완료한 결과로 최고 기록을 갱신합니다."""
+        """완료한 게임의 최고 기록을 갱신하고 저장합니다."""
         correct_count = play_quizzes(self.quizzes)
 
         if correct_count is not None:
@@ -247,12 +409,16 @@ class QuizGame:
                 correct_count,
                 len(self.quizzes),
             )
+            self.save_state()
 
         return correct_count
 
     def add_quiz(self):
-        """현재 게임의 퀴즈 목록에 새 문제를 등록합니다."""
+        """퀴즈 등록을 완료하면 파일에 저장합니다."""
         add_quiz(self.quizzes)
+
+        if self.save_state():
+            print("추가한 퀴즈를 파일에 저장했습니다.")
 
     def show_quiz_list(self):
         """현재 게임의 퀴즈 목록을 출력합니다."""
@@ -286,14 +452,24 @@ class QuizGame:
 
 
 def main():
-    """게임 객체를 만들고, 입력 중단 시 안내 후 종료합니다."""
+    """프로젝트 루트의 저장 파일을 사용하고 종료 시 저장을 시도합니다."""
+    game = None
+
     try:
-        game = QuizGame()
+        state_path = Path(__file__).resolve().parent / "state.json"
+        game = QuizGame(state_path=state_path)
         game.run()
+
     except KeyboardInterrupt:
         print("\n사용자가 실행을 중단했습니다. 종료합니다.")
+
     except EOFError:
         print("\n입력이 종료되어 프로그램을 종료합니다.")
+
+    finally:
+        if game is not None:
+            if game.save_state():
+                print("데이터를 저장했습니다.")
 
 
 if __name__ == "__main__":
