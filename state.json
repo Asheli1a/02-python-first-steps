@@ -69,6 +69,16 @@
                 "프로그램을 종료한 뒤에도 데이터를 유지하고, 다음 실행에서 다시 불러오기 위해서이다."
             ],
             "answer": 4
+        },
+        {
+            "question": "숫자 변환 과정에서 발생하는 ValueError를 처리하는 구문은 무엇인가요?",
+            "choices": [
+                "for / while",
+                "if / elif / else",
+                "try / except",
+                "class / def"
+            ],
+            "answer": 3
         }
     ],
     "best_score": {

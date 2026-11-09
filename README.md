@@ -21,9 +21,9 @@ Quiz와 QuizGame 클래스로 역할을 분리했으며, 파일 손상과 읽기
 
 ## 퀴즈 주제와 선정 이유
 
-주제: 컴퓨터 기초 상식
+주제: 컴퓨터 기초 및 Python·Git 학습 개념
 
-선정 이유: 컴퓨터 기초 지식을 퀴즈로 만들어 Python 프로그래밍을 함께 연습하기 위해 선택했습니다.
+선정 이유: 관심 있는 컴퓨터 기초 지식과 이번 미션에서 배운 Python·Git 개념을 퀴즈로 만들며 학습 내용을 복습하기 위해 선정했습니다.
 
 
 ## 개발 환경
@@ -60,6 +60,8 @@ python main.py
 quiz-game/
 ├── .gitignore
 ├── README.md
+├── docs/
+│   └── screenshots/
 ├── main.py
 ├── state.json
 ├── test_quiz.py
@@ -176,3 +178,24 @@ python test_storage.py
 - 저장은 임시 파일 작성 후 기존 파일 교체 순서로 수행합니다.
 - 퀴즈 등록, 게임 완료, 정상 종료 및 처리된 입력 중단 시 저장을 시도합니다.
 - 강제 프로세스 종료나 정전 시 저장 완료를 보장하지 않습니다.
+
+
+## 실행 화면
+
+### 메뉴
+![메뉴](docs/screenshots/menu.png)
+
+### 퀴즈 추가
+![퀴즈 추가](docs/screenshots/add_quiz.png)
+
+### 퀴즈 목록
+![퀴즈 목록](docs/screenshots/list.png)
+
+### 플레이 결과
+![플레이 결과](docs/screenshots/play.png)
+
+### 최고 점수
+![최고 점수](docs/screenshots/score.png)
+
+### 재실행 후 데이터 유지
+![데이터 유지](docs/screenshots/persistence.png)
