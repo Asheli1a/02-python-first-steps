@@ -9,10 +9,11 @@ from uuid import uuid4
 class Quiz:
     """문제 하나의 데이터와 동작을 관리합니다."""
 
-    def __init__(self, question, choices, answer):
+    def __init__(self, question, choices, answer, hint=""):
         self.question = question
         self.choices = choices
         self.answer = answer
+        self.hint = hint
 
     def display(self):
         """문제와 선택지를 출력합니다."""
@@ -37,6 +38,7 @@ def create_default_quizzes():
                 "컴퓨터에 전원을 공급한다",
             ],
             answer=2,
+            hint="컴퓨터에서 명령을 처리하는 중앙 장치를 생각해 보세요.",
         ),
         Quiz(
             question="일반적인 PC에서 전원을 끄면 저장 내용이 사라지는 메모리는?",
@@ -47,6 +49,7 @@ def create_default_quizzes():
                 "USB 플래시 드라이브",
             ],
             answer=3,
+            hint="실행 중인 프로그램이 작업 공간으로 사용하는 메모리입니다.",
         ),
         Quiz(
             question="다음 중 운영체제에 해당하는 것은 무엇인가요?",
@@ -57,6 +60,7 @@ def create_default_quizzes():
                 "PCIe",
             ],
             answer=1,
+            hint="다른 선택지는 연결 규격이나 메모리 규격입니다.",
         ),
         Quiz(
             question="다음 중 Python에서 문자열을 나타내는 자료형은?",
@@ -67,6 +71,7 @@ def create_default_quizzes():
                 "str",
             ],
             answer=4,
+            hint="영어 string의 앞부분을 생각해 보세요.",
         ),
         Quiz(
             question="Git에서 준비된 변경 사항을 로컬 이력에 기록하는 명령은?",
@@ -77,6 +82,7 @@ def create_default_quizzes():
                 "git log",
             ],
             answer=2,
+            hint="변경 내용을 하나의 이력으로 확정하는 명령입니다.",
         ),
     ]
 
@@ -100,6 +106,10 @@ def parse_state(data):
         question = item.get("question")
         choices = item.get("choices")
         answer = item.get("answer")
+        hint = item.get("hint", "")
+
+        if not isinstance(hint, str):
+            raise ValueError(f"{number}번 힌트는 문자열이어야 합니다.")
 
         if not isinstance(question, str) or not question.strip():
             raise ValueError(f"{number}번 문제가 비어 있거나 문자열이 아닙니다.")
@@ -118,9 +128,10 @@ def parse_state(data):
 
         quizzes.append(
             Quiz(
-                question.strip(),
-                [choice.strip() for choice in choices],
-                answer,
+                question=question.strip(),
+                choices=[choice.strip() for choice in choices],
+                answer=answer,
+                hint=hint.strip(),
             )
         )
 
@@ -465,6 +476,7 @@ class QuizGame:
                     "question": quiz.question,
                     "choices": quiz.choices,
                     "answer": quiz.answer,
+                    "hint": quiz.hint,
                 }
                 for quiz in self.quizzes
             ],
