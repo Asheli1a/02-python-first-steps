@@ -1,4 +1,5 @@
 import json
+import random
 import shutil
 from pathlib import Path
 from uuid import uuid4
@@ -399,19 +400,45 @@ class QuizGame:
         """메뉴를 출력합니다."""
         show_menu()
 
-    def play(self):
-        """완료한 게임의 최고 기록을 갱신하고 저장합니다."""
-        correct_count = play_quizzes(self.quizzes)
+    def play(self, selected_quizzes=None):
+        """전달된 문제 또는 전체 문제로 게임을 진행하고 기록을 저장합니다."""
+        if selected_quizzes is None:
+            selected_quizzes = self.quizzes
+
+        correct_count = play_quizzes(selected_quizzes)
 
         if correct_count is not None:
             self.best_score = update_best_score(
                 self.best_score,
                 correct_count,
-                len(self.quizzes),
+                len(selected_quizzes),
             )
             self.save_state()
 
         return correct_count
+
+    def play_selected(self):
+        """문제 수를 입력받아 무작위로 선정한 뒤 플레이합니다."""
+        if not self.quizzes:
+            return self.play([])
+
+        total = len(self.quizzes)
+
+        print(f"\n등록된 퀴즈는 총 {total}개입니다.")
+        question_count = input_int(
+            f"몇 문제를 풀까요? (1~{total}): ",
+            1,
+            total,
+        )
+
+        selected_quizzes = random.sample(
+            self.quizzes,
+            k=question_count,
+        )
+
+        print(f"{question_count}문제를 무작위로 선정했습니다.")
+
+        return self.play(selected_quizzes)
 
     def add_quiz(self):
         """퀴즈 등록을 완료하면 파일에 저장합니다."""
@@ -435,7 +462,7 @@ class QuizGame:
             choice = input_int("선택: ", 1, 5)
 
             if choice == 1:
-                self.play()
+                self.play_selected()
 
             elif choice == 2:
                 self.add_quiz()
