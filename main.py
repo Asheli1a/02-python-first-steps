@@ -214,6 +214,44 @@ def show_quiz_list(quizzes):
 
     print("=" * 40)
 
+def delete_quiz(quizzes):
+    """삭제를 최종 확인한 경우에만 목록을 변경하고 True를 반환합니다."""
+    if not quizzes:
+        print("\n삭제할 퀴즈가 없습니다.")
+        return False
+
+    show_quiz_list(quizzes)
+
+    number = input_int(
+        f"삭제할 문제 번호 (1~{len(quizzes)}, 0: 취소): ",
+        0,
+        len(quizzes),
+    )
+
+    if number == 0:
+        print("삭제를 취소했습니다.")
+        return False
+
+    quiz = quizzes[number - 1]
+
+    print(f"\n삭제 대상: {quiz.question}")
+    confirmation = input_int(
+        "정말 삭제할까요? (1: 삭제, 0: 취소): ",
+        0,
+        1,
+    )
+
+    if confirmation == 0:
+        print("삭제를 취소했습니다.")
+        return False
+
+    deleted_quiz = quizzes.pop(number - 1)
+
+    print(f"퀴즈를 삭제했습니다: {deleted_quiz.question}")
+    print(f"현재 총 {len(quizzes)}개입니다.")
+
+    return True
+
 def play_quizzes(quizzes):
     """퀴즈를 차례로 출제하고 최종 정답 수를 반환합니다."""
     if not quizzes:
@@ -295,6 +333,7 @@ def show_menu():
     print("3. 퀴즈 목록")
     print("4. 점수 확인")
     print("5. 종료")
+    print("6. 퀴즈 삭제")
     print("=" * 40)
 
 
@@ -447,6 +486,22 @@ class QuizGame:
         if self.save_state():
             print("추가한 퀴즈를 파일에 저장했습니다.")
 
+    def delete_quiz(self):
+        """삭제가 완료된 경우 변경된 목록을 저장합니다."""
+        deleted = delete_quiz(self.quizzes)
+
+        if not deleted:
+            return False
+
+        if self.state_path is None:
+            print("파일 저장을 사용하지 않는 실행입니다.")
+        elif self.save_state():
+            print("삭제 결과를 파일에 저장했습니다.")
+        else:
+            print("현재 목록에서는 삭제됐지만 파일 저장은 완료되지 않았습니다.")
+
+        return True
+
     def show_quiz_list(self):
         """현재 게임의 퀴즈 목록을 출력합니다."""
         show_quiz_list(self.quizzes)
@@ -459,7 +514,7 @@ class QuizGame:
         """종료를 선택할 때까지 메뉴를 반복합니다."""
         while True:
             self.show_menu()
-            choice = input_int("선택: ", 1, 5)
+            choice = input_int("선택: ", 1, 6)
 
             if choice == 1:
                 self.play_selected()
@@ -473,9 +528,12 @@ class QuizGame:
             elif choice == 4:
                 self.show_best_score()
 
-            else:
+            elif choice == 5:
                 print("퀴즈 게임을 종료합니다.")
                 break
+
+            elif choice == 6:
+                self.delete_quiz()
 
 
 def main():
