@@ -259,7 +259,10 @@ def parse_history(data):
         expected_score = round(float(score_from_record(item)))
 
         if score != expected_score:
-            raise ValueError(f"{number}번 기록의 점수와 정답 수가 일치하지 않습니다.")
+            raise ValueError(
+                f"{number}번 기록의 점수가 정답 수와 "
+                "힌트 감점 정보에 따른 계산 결과와 일치하지 않습니다."
+            )
 
         validated.append(
             {
@@ -562,27 +565,50 @@ class QuizGame:
         show_menu()
 
     def play(self, selected_quizzes=None):
-        """최종 점수를 최고 기록과 히스토리에 일관되게 반영합니다."""
+        """완료한 결과를 반영하고 파일 저장 실패 시 현재 상태를 안내합니다."""
         if selected_quizzes is None:
             selected_quizzes = self.quizzes
+
         result = {}
         correct_count = play_quizzes(selected_quizzes, result=result)
+
         if correct_count is not None:
             total = len(selected_quizzes)
             hints_used = result.get("hints_used", 0)
             hint_penalty = result.get("hint_penalty", HINT_PENALTY)
+
             self.best_score = update_best_score(
-                self.best_score, correct_count, total, hints_used, hint_penalty,
+                self.best_score,
+                correct_count,
+                total,
+                hints_used,
+                hint_penalty,
             )
+
             self.history.append({
-                "played_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+                "played_at": datetime.now().astimezone().isoformat(
+                    timespec="seconds"
+                ),
                 "correct_count": correct_count,
                 "total": total,
-                "score": round(float(score_value(correct_count, total, hints_used, hint_penalty))),
+                "score": round(float(score_value(
+                    correct_count,
+                    total,
+                    hints_used,
+                    hint_penalty,
+                ))),
                 "hints_used": hints_used,
                 "hint_penalty": hint_penalty,
             })
-            self.save_state()
+
+            saved = self.save_state()
+
+            if not saved and self.state_path is not None:
+                print(
+                    "이번 결과는 현재 실행의 기록에 반영됐지만 "
+                    "파일 저장은 완료되지 않았습니다."
+                )
+
         return correct_count
 
     def play_selected(self):
@@ -609,11 +635,18 @@ class QuizGame:
         return self.play(selected_quizzes)
 
     def add_quiz(self):
-        """퀴즈 등록을 완료하면 파일에 저장합니다."""
+        """퀴즈를 등록하고 메모리 반영과 파일 저장 결과를 구분해 안내합니다."""
         add_quiz(self.quizzes)
 
-        if self.save_state():
+        saved = self.save_state()
+
+        if saved:
             print("추가한 퀴즈를 파일에 저장했습니다.")
+        elif self.state_path is not None:
+            print(
+                "현재 목록에는 퀴즈가 추가됐지만 "
+                "파일 저장은 완료되지 않았습니다."
+            )
 
     def delete_quiz(self):
         """삭제가 완료된 경우 변경된 목록을 저장합니다."""
