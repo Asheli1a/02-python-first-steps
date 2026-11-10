@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 import random
 import shutil
 from pathlib import Path
@@ -144,6 +145,57 @@ def parse_state(data):
         }
 
     return quizzes, best_score
+
+def parse_history(data):
+    """기존 파일은 빈 기록으로 읽고, 기록이 있으면 구조를 검사합니다."""
+    history = data.get("history", [])
+
+    if not isinstance(history, list):
+        raise ValueError("history는 목록이어야 합니다.")
+
+    validated = []
+
+    for number, item in enumerate(history, start=1):
+        if not isinstance(item, dict):
+            raise ValueError(f"{number}번 게임 기록은 객체여야 합니다.")
+
+        played_at = item.get("played_at")
+        correct_count = item.get("correct_count")
+        total = item.get("total")
+        score = item.get("score")
+
+        if not isinstance(played_at, str):
+            raise ValueError(f"{number}번 기록의 시각은 문자열이어야 합니다.")
+
+        recorded_time = datetime.fromisoformat(played_at)
+
+        if recorded_time.utcoffset() is None:
+            raise ValueError(f"{number}번 기록에 시간대가 없습니다.")
+
+        if type(correct_count) is not int or type(total) is not int:
+            raise ValueError(f"{number}번 기록의 문제 수는 정수여야 합니다.")
+
+        if total <= 0 or not 0 <= correct_count <= total:
+            raise ValueError(f"{number}번 기록의 정답 수 또는 문제 수가 잘못됐습니다.")
+
+        if type(score) is not int:
+            raise ValueError(f"{number}번 기록의 점수는 정수여야 합니다.")
+
+        expected_score = round(correct_count / total * 100)
+
+        if score != expected_score:
+            raise ValueError(f"{number}번 기록의 점수와 정답 수가 일치하지 않습니다.")
+
+        validated.append(
+            {
+                "played_at": played_at,
+                "correct_count": correct_count,
+                "total": total,
+                "score": score,
+            }
+        )
+
+    return validated
 
 def input_int(prompt, minimum, maximum):
     """허용 범위 안의 정수를 입력받을 때까지 반복합니다."""
@@ -334,6 +386,7 @@ def show_menu():
     print("4. 점수 확인")
     print("5. 종료")
     print("6. 퀴즈 삭제")
+    print("7. 게임 기록")
     print("=" * 40)
 
 
@@ -343,6 +396,7 @@ class QuizGame:
     def __init__(self, state_path=None):
         self.quizzes = create_default_quizzes()
         self.best_score = None
+        self.history = []
         self.state_path = (
             Path(state_path) if state_path is not None else None
         )
@@ -361,6 +415,7 @@ class QuizGame:
                 data = json.load(file)
 
             quizzes, best_score = parse_state(data)
+            history = parse_history(data)
 
         except FileNotFoundError:
             print("저장 파일이 없어 기본 퀴즈로 시작합니다.")
@@ -378,6 +433,7 @@ class QuizGame:
         else:
             self.quizzes = quizzes
             self.best_score = best_score
+            self.history = history
             print(f"저장된 데이터를 불러왔습니다. 퀴즈 {len(quizzes)}개")
 
     def backup_damaged_state(self):
@@ -413,6 +469,7 @@ class QuizGame:
                 for quiz in self.quizzes
             ],
             "best_score": self.best_score,
+            "history": self.history,
         }
 
         temporary_path = self.state_path.with_name(
@@ -422,6 +479,7 @@ class QuizGame:
         try:
             # 잘못된 메모리 데이터를 파일에 기록하지 않도록 검사합니다.
             parse_state(data)
+            parse_history(data)
 
             with temporary_path.open("w", encoding="utf-8") as file:
                 json.dump(data, file, ensure_ascii=False, indent=4)
@@ -440,18 +498,32 @@ class QuizGame:
         show_menu()
 
     def play(self, selected_quizzes=None):
-        """전달된 문제 또는 전체 문제로 게임을 진행하고 기록을 저장합니다."""
+        """완료한 게임의 최고 기록과 히스토리를 갱신하고 저장합니다."""
         if selected_quizzes is None:
             selected_quizzes = self.quizzes
 
         correct_count = play_quizzes(selected_quizzes)
 
         if correct_count is not None:
+            total = len(selected_quizzes)
+
             self.best_score = update_best_score(
                 self.best_score,
                 correct_count,
-                len(selected_quizzes),
+                total,
             )
+
+            self.history.append(
+                {
+                    "played_at": datetime.now().astimezone().isoformat(
+                        timespec="seconds"
+                    ),
+                    "correct_count": correct_count,
+                    "total": total,
+                    "score": round(correct_count / total * 100),
+                }
+            )
+
             self.save_state()
 
         return correct_count
@@ -514,7 +586,7 @@ class QuizGame:
         """종료를 선택할 때까지 메뉴를 반복합니다."""
         while True:
             self.show_menu()
-            choice = input_int("선택: ", 1, 6)
+            choice = input_int("선택: ", 1, 7)
 
             if choice == 1:
                 self.play_selected()
@@ -534,6 +606,25 @@ class QuizGame:
 
             elif choice == 6:
                 self.delete_quiz()
+            elif choice == 7:
+                self.show_history()
+
+    def show_history(self):
+        """최근 게임부터 기록을 출력합니다."""
+        if not self.history:
+            print("\n아직 완료한 게임 기록이 없습니다.")
+            return
+
+        print(f"\n게임 기록 (총 {len(self.history)}회, 최근 기록부터)")
+        print("-" * 60)
+
+        for number, record in enumerate(reversed(self.history), start=1):
+            print(
+                f"[{number}] {record['played_at']} | "
+                f"{record['total']}문제 중 "
+                f"{record['correct_count']}문제 정답 | "
+                f"{record['score']}점"
+            )
 
 
 def main():

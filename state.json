@@ -82,7 +82,15 @@
         }
     ],
     "best_score": {
-        "correct_count": 4,
-        "total": 6
-    }
+        "correct_count": 2,
+        "total": 2
+    },
+    "history": [
+        {
+            "played_at": "2026-11-10T16:27:17+09:00",
+            "correct_count": 2,
+            "total": 2,
+            "score": 100
+        }
+    ]
 }
