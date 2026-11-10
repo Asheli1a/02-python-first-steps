@@ -7,11 +7,15 @@ from pathlib import Path
 from uuid import uuid4
 
 
-
 HINT_PENALTY = 10
 
 
-def score_value(correct_count, total, hints_used=0, hint_penalty=HINT_PENALTY):
+def score_value(
+    correct_count,
+    total,
+    hints_used=0,
+    hint_penalty=HINT_PENALTY,
+):
     """감점 후 점수를 정확한 분수로 계산합니다."""
     if type(correct_count) is not int or type(total) is not int:
         raise ValueError("정답 수와 문제 수는 정수여야 합니다.")
@@ -82,6 +86,7 @@ class Quiz:
         """입력한 번호가 정답이면 True, 아니면 False를 반환합니다."""
         return user_answer == self.answer
 
+
 def create_default_quizzes():
     """기본 퀴즈 5개를 새로운 객체 목록으로 만들어 반환합니다."""
     return [
@@ -141,6 +146,7 @@ def create_default_quizzes():
             hint="변경 내용을 하나의 이력으로 확정하는 명령입니다.",
         ),
     ]
+
 
 def parse_state(data):
     """저장 데이터의 구조를 검사하고 퀴즈 객체와 최고 기록을 반환합니다."""
@@ -221,6 +227,7 @@ def parse_state(data):
 
     return quizzes, best_score
 
+
 def parse_history(data):
     """기존 파일은 빈 기록으로 읽고, 기록이 있으면 구조를 검사합니다."""
     history = data.get("history", [])
@@ -270,11 +277,16 @@ def parse_history(data):
                 "correct_count": correct_count,
                 "total": total,
                 "score": score,
-                **{key: item[key] for key in ("hints_used", "hint_penalty") if key in item},
+                **{
+                    key: item[key]
+                    for key in ("hints_used", "hint_penalty")
+                    if key in item
+                },
             }
         )
 
     return validated
+
 
 def input_int(prompt, minimum, maximum):
     """허용 범위 안의 정수를 입력받을 때까지 반복합니다."""
@@ -296,6 +308,7 @@ def input_int(prompt, minimum, maximum):
 
         print(f"{minimum}~{maximum} 사이의 숫자를 입력하세요.")
 
+
 def input_text(prompt):
     """앞뒤 공백을 제거하고, 비어 있지 않은 문자열을 반환합니다."""
     while True:
@@ -305,6 +318,7 @@ def input_text(prompt):
             return text
 
         print("입력이 비어 있습니다. 내용을 입력하세요.")
+
 
 def add_quiz(quizzes):
     """모든 입력을 완료하면 새 퀴즈를 목록에 추가합니다."""
@@ -330,6 +344,7 @@ def add_quiz(quizzes):
 
     print(f"퀴즈가 추가되었습니다! 현재 총 {len(quizzes)}개입니다.")
 
+
 def show_quiz_list(quizzes):
     """등록된 퀴즈의 문제를 번호와 함께 출력합니다."""
     if not quizzes:
@@ -344,6 +359,7 @@ def show_quiz_list(quizzes):
         print(f"[{number}] {quiz.question}")
 
     print("=" * 40)
+
 
 def delete_quiz(quizzes):
     """삭제를 최종 확인한 경우에만 목록을 변경하고 True를 반환합니다."""
@@ -383,6 +399,7 @@ def delete_quiz(quizzes):
 
     return True
 
+
 def play_quizzes(quizzes, *, result=None):
     """최종 정답 수를 반환하고, 요청한 경우 감점 정보를 함께 전달합니다."""
     if not quizzes:
@@ -415,7 +432,14 @@ def play_quizzes(quizzes, *, result=None):
         result.update(hints_used=hints_used, hint_penalty=HINT_PENALTY)
     return correct_count
 
-def update_best_score(best_score, correct_count, total, hints_used=0, hint_penalty=HINT_PENALTY):
+
+def update_best_score(
+    best_score,
+    correct_count,
+    total,
+    hints_used=0,
+    hint_penalty=HINT_PENALTY,
+):
     """반올림 전 최종 점수를 비교하고, 동점이면 기존 기록을 유지합니다."""
     candidate = {"correct_count": correct_count, "total": total}
     if hints_used:
@@ -425,6 +449,7 @@ def update_best_score(best_score, correct_count, total, hints_used=0, hint_penal
         print("새로운 최고 기록입니다!")
         return candidate
     return best_score
+
 
 def show_best_score(best_score):
     """감점이 반영된 최고 기록을 출력합니다."""
@@ -436,8 +461,12 @@ def show_best_score(best_score):
     print(f"최고 점수: {float(score):.0f}점")
     print(f"당시 {best_score['total']}문제 중 {best_score['correct_count']}문제 정답")
     if best_score.get("hints_used", 0):
-        print(f"힌트 {best_score['hints_used']}회 | 회당 {best_score.get('hint_penalty', HINT_PENALTY)}점 감점")
+        print(
+            f"힌트 {best_score['hints_used']}회 | "
+            f"회당 {best_score.get('hint_penalty', HINT_PENALTY)}점 감점"
+        )
     print("=" * 40)
+
 
 def show_menu():
     """메뉴를 화면에 출력합니다."""
@@ -585,21 +614,27 @@ class QuizGame:
                 hint_penalty,
             )
 
-            self.history.append({
-                "played_at": datetime.now().astimezone().isoformat(
-                    timespec="seconds"
-                ),
-                "correct_count": correct_count,
-                "total": total,
-                "score": round(float(score_value(
-                    correct_count,
-                    total,
-                    hints_used,
-                    hint_penalty,
-                ))),
-                "hints_used": hints_used,
-                "hint_penalty": hint_penalty,
-            })
+            self.history.append(
+                {
+                    "played_at": datetime.now().astimezone().isoformat(
+                        timespec="seconds"
+                    ),
+                    "correct_count": correct_count,
+                    "total": total,
+                    "score": round(
+                        float(
+                            score_value(
+                                correct_count,
+                                total,
+                                hints_used,
+                                hint_penalty,
+                            )
+                        )
+                    ),
+                    "hints_used": hints_used,
+                    "hint_penalty": hint_penalty,
+                }
+            )
 
             saved = self.save_state()
 
@@ -715,9 +750,10 @@ class QuizGame:
                 f"{record['score']}점"
             )
             if record.get("hints_used", 0):
-                print(f"    힌트 {record['hints_used']}회 | 회당 {record.get('hint_penalty', HINT_PENALTY)}점 감점")
-
-
+                print(
+                    f"    힌트 {record['hints_used']}회 | "
+                    f"회당 {record.get('hint_penalty', HINT_PENALTY)}점 감점"
+                )
 
     def set_hint(self):
         """기존 문제의 힌트를 설정하며 빈 입력은 힌트를 제거합니다."""
@@ -725,7 +761,11 @@ class QuizGame:
             print("힌트를 설정할 퀴즈가 없습니다.")
             return False
         self.show_quiz_list()
-        number = input_int(f"힌트를 설정할 번호 (1~{len(self.quizzes)}, 0: 취소): ", 0, len(self.quizzes))
+        number = input_int(
+            f"힌트를 설정할 번호 (1~{len(self.quizzes)}, 0: 취소): ",
+            0,
+            len(self.quizzes),
+        )
         if number == 0:
             print("힌트 설정을 취소했습니다.")
             return False
