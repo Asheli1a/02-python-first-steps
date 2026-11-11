@@ -1733,6 +1733,59 @@ nothing to commit, working tree clean
 - 현재 설치 목록에는 Python 3.15.2만 있어 3.10 실행 검증은 하지 않았습니다. 이번 보완을 위해 설치 환경을 바꾸지 않았습니다.
 - 사용자 중단이나 예상 밖 종료에서는 자식 프로세스의 출력이 함께 나타날 수 있습니다. 강제 프로세스 종료까지 요약 출력을 보장하지 않습니다.
 
-### 4. 문서 작성 시점의 진행 상태
+### 4. 병합과 최종 검증
 
-실행 도구는 커밋·로컬 검증 완료 상태입니다. 이번 실행 방법·검증 환경·수동 복구 안내를 담은 문서 변경은 작성 시점에 커밋 전이며, chore/verification-support의 main 병합과 원격 업로드도 아직 완료로 기록하지 않습니다. 실제 결과를 확인한 뒤 최종 이력을 반영합니다.
+2026-11-11 chore/verification-support를 main에 병합하고, 병합된 main에서 통합 테스트를 다시 실행했습니다.
+
+| 구분 | 커밋 | 내용 |
+|---|---|---|
+| 기준 main | f3edd99 | Git 커밋 수·작업 단위·메시지 규칙 증빙 |
+| 실행 도구 | 32a5972 | 테스트 13종 통합 실행·결과 요약 |
+| 문서 보완 | 04a08f8 | 실행 방법·검증 환경·안전한 복구 절차 |
+| main 병합 | 73fe77f | 통합 테스트 도구와 검증·복구 안내 병합 |
+
+병합 후 Python 3.15.2에서 실행한 명령:
+
+```powershell
+python run_tests.py
+$LASTEXITCODE
+```
+
+요약 결과:
+
+```text
+총 13종 | 통과 13 | 실패 0 | 중단 0 | 미실행 0
+개별 테스트 개수가 아니라 스크립트 단위 집계입니다.
+```
+
+PowerShell에서 확인한 종료 코드:
+
+```text
+0
+```
+
+main과 chore/verification-support를 모두 원격 저장소에 업로드했습니다.
+
+병합·업로드 직후 Git 그래프의 관련 부분:
+
+```text
+*   73fe77f (HEAD -> main, origin/main, origin/HEAD) Merge: 통합 테스트 도구와 검증 및 복구 안내 보완 병합
+|\
+| * 04a08f8 (origin/chore/verification-support, chore/verification-support) Docs: 통합 테스트 실행과 검증 환경 및 안전한 복구 절차 정리
+| * 32a5972 Chore: 테스트 13종의 통합 실행과 결과 요약 도구 추가
+|/
+* f3edd99 Docs: 커밋 수와 작업 단위 및 메시지 규칙 증빙 보강
+```
+
+당시 최종 작업 상태:
+
+```text
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+
+위 그래프와 작업 상태는 선택 보완의 병합·업로드 직후 기록입니다. 이후 이 결과를 반영하는 문서 커밋이 추가될 수 있습니다.
+
+Python 3.10 실행 검증은 여전히 미실시 상태입니다. 실제 검증 환경은 Python 3.15.2이며, 수동 복구 절차는 운영 안내이지 실제 사용자 데이터를 손상·복원한 실행 기록은 아닙니다.
