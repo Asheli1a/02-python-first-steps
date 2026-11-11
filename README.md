@@ -11,6 +11,166 @@ Python 기본 문법, 클래스, JSON 파일 저장, Git과 GitHub 사용법을 
 Quiz와 QuizGame 클래스로 역할을 분리했으며, 파일 손상과 읽기·쓰기 오류를 처리합니다.
 
 
+## Git 요구사항 증빙: 커밋 수·작업 단위·메시지 규칙
+
+### 1. GitHub 업로드와 10개 이상 커밋 증빙
+
+- 저장소: https://github.com/Asheli1a/02-python-first-steps
+- 증빙 확인일: 2026-11-11
+- 집계 기준: 원격 origin/main이 b3b2c01을 가리키던 시점
+- 로컬 HEAD와 원격 origin/main: 모두 b3b2c01
+- 원격 main 전체 이력: 39개 커밋
+- 병합 제외 커밋: 33개
+- 병합 커밋: 6개
+
+최소 10개 이상 커밋 요구를 충족합니다. 단순히 개수만 제시하지 않고, 아래 작업별 커밋 대응표와 전체 로그로 변경 내용을 확인할 수 있도록 했습니다. 병합 제외 커밋에는 기능·수정·문서·관리 작업이 포함됩니다. 이를 전부 기능 구현 커밋이라고 집계하지 않습니다.
+
+아래는 프로젝트 폴더에서 git fetch origin 후 직접 실행한 명령과 실제 출력입니다.
+
+```text
+PS C:\Users\Austarthia\quiz-game> git rev-parse --short HEAD
+b3b2c01
+PS C:\Users\Austarthia\quiz-game> git rev-parse --short origin/main
+b3b2c01
+PS C:\Users\Austarthia\quiz-game> git rev-list --count origin/main
+39
+PS C:\Users\Austarthia\quiz-game> git rev-list --count --no-merges origin/main
+33
+PS C:\Users\Austarthia\quiz-game> git rev-list --count --merges origin/main
+6
+```
+
+위 39개는 b3b2c01까지의 고정된 증빙입니다. 이후 이 문서를 보완하는 커밋이 추가되면 최신 main의 수는 증가할 수 있습니다. 당시 수를 재확인하려면 다음처럼 기준 커밋을 지정합니다.
+
+```powershell
+git rev-list --count b3b2c01
+git rev-list --count --no-merges b3b2c01
+git rev-list --count --merges b3b2c01
+git --no-pager log --oneline --reverse b3b2c01
+```
+
+원격 업로드도 별도로 확인했습니다. b3b2c01의 push 성공 후, 위 조회에서 HEAD와 origin/main이 일치했고 git status는 다음 상태였습니다.
+
+```text
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+
+### 2. 커밋 작업 단위와 메시지 규칙
+
+이 저장소는 메뉴·Quiz·기본 문제·플레이·등록·목록·점수·파일 저장·보너스 기능을 작업 단위로 나누어 기록했습니다. 기능의 검증 테스트는 해당 구현과 함께 커밋하고, 기능과 구분할 수 있는 가독성 변경이나 문서 정리는 별도 커밋으로 남겼습니다.
+
+실제 사용한 메시지의 기본 형식은 다음과 같습니다.
+
+```text
+<접두사>: <무엇을 변경했는지 설명하는 요약>
+```
+
+| 접두사 | 구분 기준 | 실제 사용 예 |
+|---|---|---|
+| Feat | 새로운 기능·데이터 구현 | Feat: 메뉴 및 공통 입력 검증과 종료 처리 구현 |
+| Fix | 오류 처리·검증·안내 개선 | Fix: 등록과 게임 결과의 저장 실패 안내 및 기록 검증 메시지 보완 |
+| Refactor | 기능을 유지하는 구조·가독성 개선 | Refactor: 퀴즈 게임 코드의 긴 줄과 공백 정리 |
+| Docs | 설명·실행 화면·검증 기록 등 문서 작업 | Docs: 저장 안내 개선의 병합과 원격 반영 및 최종 검증 기록 추가 |
+| Chore | 초기 설정·관리 작업·검증 데이터 정리 | Chore: 퀴즈 게임 프로젝트 초기 설정 |
+| Merge | 브랜치 병합 이력 | Merge: 저장 실패 안내와 코드 가독성 개선 병합 |
+
+이는 실제 이력에서 사용한 형식의 정리이며, 자동 검사 도구나 커밋 훅으로 강제했다는 뜻은 아닙니다. 과거 커밋의 분류를 다시 쓰거나 이력을 변경하지 않았습니다.
+
+작업 단위의 예로 저장 안내 개선은 5f33a8a(Fix와 관련 테스트), 37116de(Refactor), b077e47(Docs)로 분리했습니다. 가독성 정리는 기능 변경과 섞지 않고 AST 동일성과 회귀 테스트로 확인했습니다.
+
+### 3. 요구 기능과 실제 커밋의 대응
+
+아래는 10개를 넘는 구체적인 작업의 실제 커밋입니다. 각 링크에서 변경 파일과 내용을 확인할 수 있습니다.
+
+| 작업 단위 | 실제 커밋 | 접두사 | 변경 내용 |
+|---|---|---|---|
+| 초기 설정 | [7472bfc](https://github.com/Asheli1a/02-python-first-steps/commit/7472bfc) | Chore | 프로젝트 초기 설정 |
+| 메뉴·입력 | [4f2c785](https://github.com/Asheli1a/02-python-first-steps/commit/4f2c785) | Feat | 메뉴·입력 검증·종료 |
+| Quiz 클래스 | [82f2556](https://github.com/Asheli1a/02-python-first-steps/commit/82f2556) | Feat | 문제 출력·정답 판정과 테스트 |
+| 기본 문제 | [26965bb](https://github.com/Asheli1a/02-python-first-steps/commit/26965bb) | Feat | 컴퓨터 기초 퀴즈 5개 |
+| 퀴즈 플레이 | [4dfd521](https://github.com/Asheli1a/02-python-first-steps/commit/4dfd521) | Feat | 출제·채점·결과 출력 |
+| 퀴즈 등록 | [a62263b](https://github.com/Asheli1a/02-python-first-steps/commit/a62263b) | Feat | 등록·빈 입력·입력 중단 검증 |
+| 퀴즈 목록 | [f5a3bf9](https://github.com/Asheli1a/02-python-first-steps/commit/f5a3bf9) | Feat | 목록·빈 목록 처리 |
+| 최고 점수 | [d1fea3e](https://github.com/Asheli1a/02-python-first-steps/commit/d1fea3e) | Feat | 최고 기록 비교·점수 조회 |
+| 클래스 구조 | [f34c485](https://github.com/Asheli1a/02-python-first-steps/commit/f34c485) | Refactor | QuizGame 책임 정리 |
+| 파일 저장 | [f6c813a](https://github.com/Asheli1a/02-python-first-steps/commit/f6c813a) | Feat | JSON 저장·복원·손상 백업 |
+| 복제 실습 | [3dc8f67](https://github.com/Asheli1a/02-python-first-steps/commit/3dc8f67) | Docs | 복제본에서 변경·커밋·원격 반영 |
+| 랜덤 출제 | [76802e2](https://github.com/Asheli1a/02-python-first-steps/commit/76802e2) | Feat | 출제 수 선택·무작위 선정 |
+| 퀴즈 삭제 | [6f70633](https://github.com/Asheli1a/02-python-first-steps/commit/6f70633) | Feat | 삭제·저장·검증 |
+| 게임 기록 | [8a9b642](https://github.com/Asheli1a/02-python-first-steps/commit/8a9b642) | Feat | 히스토리·기존 파일 호환 |
+| 힌트 기반 | [df1995b](https://github.com/Asheli1a/02-python-first-steps/commit/df1995b) | Feat | 힌트 속성·저장 호환 |
+| 힌트 플레이 | [ba0f74b](https://github.com/Asheli1a/02-python-first-steps/commit/ba0f74b) | Feat | 요청·감점·설정 메뉴 |
+| 저장 안내 | [5f33a8a](https://github.com/Asheli1a/02-python-first-steps/commit/5f33a8a) | Fix | 저장 실패 안내·기록 검증·테스트 |
+| 가독성 | [37116de](https://github.com/Asheli1a/02-python-first-steps/commit/37116de) | Refactor | 동작 유지·긴 줄·공백 정리 |
+
+### 4. 브랜치 목적과 병합 이력
+
+| 브랜치 | 목적 | main 병합 커밋 |
+|---|---|---|
+| feature/play | 필수 퀴즈 플레이 구현 | 2f57645 |
+| feature/random-selection | 랜덤 출제·문제 수 선택 | 401ba5f |
+| feature/delete-quiz | 퀴즈 삭제·저장 | 09d7092 |
+| feature/history | 게임 기록 저장·조회 | 117f305 |
+| feature/hints | 힌트 속성·요청·감점·설정 | 78ac669 |
+| fix/storage-feedback | 저장 실패 안내·검증·가독성 개선 | 28654e7 |
+
+실제 브랜치 이름은 새 기능에 feature/<작업명>, 수정에 fix/<작업명> 형식을 사용했습니다. 기능별 테스트 후 main에 --no-ff로 병합하고, 병합된 main에서 회귀 테스트와 작업 상태를 확인한 뒤 원격에 반영했습니다. PR·외부 리뷰를 필수 절차로 운영했다는 뜻은 아닙니다.
+
+clone → 복제본 수정·commit·push → 원래 폴더에서 pull한 실제 명령과 출력은 아래 'Git 복제 및 동기화 실습' 절에 별도로 보존했습니다.
+
+### 5. 원격 main 전체 커밋 로그
+
+다음은 2026-11-11 원격 origin/main을 조회한 실제 전체 출력 39줄입니다. 브랜치 장식과 HEAD 표시는 b3b2c01 증빙 시점의 상태이며, 이후 변경될 수 있습니다.
+
+```powershell
+git --no-pager log --oneline --reverse origin/main
+```
+
+```text
+7472bfc Chore: 퀴즈 게임 프로젝트 초기 설정
+4f2c785 Feat: 메뉴 및 공통 입력 검증과 종료 처리 구현
+82f2556 Feat: Quiz 클래스와 문제 출력 및 정답 판정 테스트 추가
+26965bb Feat: 컴퓨터 기초 퀴즈 5개와 기본 데이터 검증 추가
+4dfd521 (origin/feature/play, feature/play) Feat: 퀴즈 플레이와 채점 및 결과 출력 구현
+2f57645 Merge: 퀴즈 플레이 기능 브랜치 병합
+a62263b Feat: 퀴즈 등록과 빈 입력 검증 및 중단 처리 테스트 추가
+f5a3bf9 Feat: 퀴즈 목록 조회와 빈 목록 처리 및 테스트 추가
+d1fea3e Feat: 최고 기록의 정답률 비교와 점수 조회 및 테스트 추가
+f34c485 Refactor: QuizGame으로 게임 상태와 메뉴 진행 관리
+f6c813a Feat: JSON 저장과 복원 및 손상 파일 백업과 오류 처리 구현
+5ba620b Docs: 저장 파일과 저장 테스트를 README 파일 구조에 반영
+3dc8f67 Docs: 복제 저장소에서 Git 동기화 실습 절차 추가
+40acf97 Docs: 임시 퀴즈를 클래스와 JSON 저장 개념 문제로 교체
+f46fba9 Docs: 제출용 실행 화면과 최종 프로젝트 설명 정리
+dd49d32 Docs: 개발 환경과 Git 증빙 추가 및 플레이 화면 잘림 보완
+c0b0223 Docs: clone과 pull 실습의 실제 실행 로그 추가
+ef4b747 Docs: 학습 목표 개념 설명과 실습 로그 URL 표기 정리
+3e14ee7 Docs: 클래스와 JSON 선택 이유 및 데이터 확장 한계 정리
+76802e2 (origin/feature/random-selection, feature/random-selection) Feat: 랜덤 출제와 문제 수 선택 및 실제 출제 수 기준 기록 구현
+401ba5f Merge: 랜덤 출제와 문제 수 선택 기능 병합
+4cb22b2 Docs: 랜덤 출제 검증 로그와 점수 정책 및 테스트 구조 보완
+6f70633 (origin/feature/delete-quiz, feature/delete-quiz) Feat: 퀴즈 삭제와 저장 및 검증 문서 구현
+09d7092 Merge: 퀴즈 삭제 기능 병합
+31992c8 Docs: 퀴즈 삭제 기능의 병합과 원격 반영 기록 추가. 줄바꿈 정리
+8a9b642 Feat: 게임 기록 히스토리와 기존 파일 호환 및 검증 문서 구현
+3d9289d (origin/feature/history, feature/history) Chore: 히스토리 검증 기록과 최고 점수 저장 데이터 반영
+117f305 Merge: 점수 기록 히스토리 기능 병합
+96e6d96 Docs: 히스토리 기능의 병합과 저장 데이터 반영 기록 추가
+c71db24 Docs: QuizGame 설명에 게임 기록 관리 역할 반영
+df1995b Feat: 힌트 속성과 기존 데이터 호환 및 저장 검증 추가
+ba0f74b (origin/feature/hints, feature/hints) Feat: 힌트 요청과 감점 및 설정 메뉴와 기록 호환 구현
+78ac669 Merge: 힌트 요청과 감점 및 설정 기능 병합
+2ba31a4 Docs: 힌트 기능 병합과 원격 반영 및 최종 검증 기록 추가
+5f33a8a Fix: 등록과 게임 결과의 저장 실패 안내 및 기록 검증 메시지 보완
+37116de Refactor: 퀴즈 게임 코드의 긴 줄과 공백 정리
+b077e47 (origin/fix/storage-feedback, fix/storage-feedback) Docs: 저장 실패 안내와 가독성 개선 및 13종 테스트 검증 기록 추가
+28654e7 Merge: 저장 실패 안내와 코드 가독성 개선 병합
+b3b2c01 (HEAD -> main, origin/main, origin/HEAD) Docs: 저장 안내 개선의 병합과 원격 반영 및 최종 검증 기록 추가
+```
+
 ## Git 복제 및 동기화 실습
 
 별도 로컬 폴더에 저장소를 복제한 뒤 README를 수정하여 commit과 push를 수행했습니다. 이후 원래 작업 폴더에서 pull로 변경을 가져와 반영 여부를 확인했습니다.
@@ -200,6 +360,22 @@ quiz-game/
 - QuizGame: 퀴즈 목록, 최고 기록, 게임 기록을 보관하고 메뉴와 게임 진행을 관리합니다.
 - 공통 함수: 입력 검증과 개별 기능 처리를 담당하며 QuizGame에서 재사용합니다.
 
+
+### 주요 메서드와 책임 경계
+
+| 대상 | 함수·메서드 | 책임 |
+|---|---|---|
+| Quiz | display(), check_answer() | 개별 문제 출력과 정답 판정 |
+| QuizGame | run(), show_menu() | 메뉴와 기능 연결 |
+| QuizGame | play_selected(), play() | 출제 대상 선정·게임 결과·최고 기록·히스토리 관리 |
+| QuizGame | add_quiz(), delete_quiz(), set_hint() | 문제·힌트 변경과 저장 결과 안내 |
+| QuizGame | show_quiz_list(), show_best_score(), show_history() | 목록·최고 기록·누적 기록 조회 |
+| QuizGame | load_state(), save_state(), backup_damaged_state() | 파일 읽기·쓰기·손상 백업·원본 보호 |
+| 공통 함수 | input_int(), input_text(), input_answer() | 사용자 입력·재입력·힌트 요청 처리 |
+| 공통 함수 | parse_state(), parse_history() | 저장 데이터의 구조·형식·값 검증 |
+| 공통 함수 | score_value(), score_from_record(), update_best_score() | 감점 후 점수 계산과 최고 기록 비교 |
+
+입력 검증은 사용자 입력을 올바른 값으로 받는 책임이고, 저장 데이터 검증은 JSON을 게임 데이터로 받아들일 수 있는지 검사하는 책임입니다. 영속화는 이 데이터를 파일에 읽고 쓰는 책임이며, QuizGame이 게임 상태 변경 후 저장을 연결합니다.
 
 ## 학습 목표와 구현 연결
 
@@ -745,6 +921,12 @@ OK
 }
 ```
 
+### 불러오기와 저장의 순서
+
+- load_state(): UTF-8 파일 읽기 → JSON 해석 → parse_state()/parse_history() 검증 → 성공한 상태만 메모리에 적용
+- save_state(): 메모리 상태를 저장용 데이터로 변환 → 같은 검증 함수로 검사 → UTF-8 임시 파일 작성 → 기존 state.json 교체
+- 원본에 바로 덮어쓰지 않는 이유: 임시 파일 작성이나 교체 실패 시 기존 파일을 보호하기 위해서입니다. 정전·강제 종료·동시 실행까지 보장하는 방식은 아닙니다.
+
 ### 호환과 저장 정책
 
 - 기존 파일에 history가 없으면 빈 목록으로 불러옵니다. 기존 최고 기록에서 과거 게임을 추측해 생성하지 않습니다.
@@ -774,6 +956,21 @@ OK
 
 ### 커밋과 브랜치 병합 이력
 ![Git 이력](docs/screenshots/git_log.png)
+
+### 제출 스크린샷 파일과 확인 항목
+
+| 파일 | 확인 항목 |
+|---|---|
+| docs/screenshots/environment.png | 개발 환경 설정 증빙 |
+| docs/screenshots/git_log.png | 커밋·브랜치 병합 그래프 |
+| docs/screenshots/menu.png | 메뉴 출력 |
+| docs/screenshots/add_quiz.png | 새 퀴즈 등록 |
+| docs/screenshots/list.png | 등록된 퀴즈 목록 |
+| docs/screenshots/play.png | 문제 풀이와 채점 결과 |
+| docs/screenshots/score.png | 최고 점수와 당시 정답 수 |
+| docs/screenshots/persistence.png | 재실행 후 데이터 유지 |
+
+기존 스크린샷은 필수 기능 완성 당시의 화면입니다. 이후 기능과 최신 Git 이력은 아래 실행 로그 및 위 'Git 요구사항 증빙'의 전체 로그로 구분해 제시합니다.
 
 ## 실행 화면
 
